@@ -25,11 +25,11 @@ const formatGeminiError = (error: any): string => {
 
 const MODEL_NAME = "gemini-3-flash-preview";
 
-export async function getGardeningAdvice(variety: string, location: string) {
+export async function getGardeningAdvice(plantName: string, variety: string, location: string) {
   const apiKey = getApiKey();
   
   const fallbackToStatic = () => {
-    const query = variety.toLowerCase();
+    const query = `${plantName} ${variety}`.toLowerCase();
     const matchKey = Object.keys(STATIC_PLANT_ADVICE).find(k => query.includes(k));
     if (matchKey) {
       return { data: STATIC_PLANT_ADVICE[matchKey], error: null, source: 'static' };
@@ -48,8 +48,8 @@ export async function getGardeningAdvice(variety: string, location: string) {
   const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `Виступай як професійний український агроном та садівник. 
-Користувач має рослину сорту "${variety}" у місті/регіоні "${location}".
-Надай інформацію про догляд. 
+Користувач має рослину "${plantName}" сорту "${variety}" у місті/регіоні "${location}".
+Надай інформацію про догляд саме за цією рослиною. Будь уважним: якщо сорт "${variety}" зустрічається у різних видів рослин, надавай поради саме для "${plantName}".
 Відповідь має бути у форматі JSON з полями:
 - sections: масив об'єктів { title: string, content: string }
 - secretTip: рядок з секретною порадою.

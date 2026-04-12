@@ -48,6 +48,7 @@ interface Activity {
   plantName?: string;
   action: string;
   notes?: string;
+  status?: 'planned' | 'completed';
 }
 
 interface DailyTask {
@@ -226,20 +227,21 @@ export default function App() {
     toast.info('Рослину видалено');
   };
 
-  const addActivity = (action: string, plant?: Plant, notes?: string) => {
+  const addActivity = (action: string, status: 'planned' | 'completed' = 'completed', date: string = new Date().toISOString(), plant?: Plant, notes?: string) => {
     const newActivity: Activity = {
       id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toISOString(),
+      date,
       plantId: plant?.id,
       plantName: plant?.name,
       action,
       notes,
+      status,
     };
     const updatedActivities = [newActivity, ...activities];
     setActivities(updatedActivities);
     localStorage.setItem('sadyba_activities', JSON.stringify(updatedActivities));
     
-    if (plant) {
+    if (plant && status === 'completed') {
       const updatedPlants = plants.map(p => 
         p.id === plant.id ? { ...p, lastTreated: new Date().toISOString() } : p
       );
@@ -247,7 +249,31 @@ export default function App() {
       localStorage.setItem('sadyba_plants', JSON.stringify(updatedPlants));
     }
     
-    toast.success('Запис додано до журналу!');
+    toast.success(status === 'completed' ? 'Запис додано до журналу!' : 'Роботу заплановано!');
+  };
+
+  const toggleActivityStatus = (activityId: string) => {
+    const updatedActivities = activities.map(a => {
+      if (a.id === activityId) {
+        const newStatus = a.status === 'planned' ? 'completed' : 'planned';
+        
+        // If moving to completed, update plant's lastTreated
+        if (newStatus === 'completed' && a.plantId) {
+          const updatedPlants = plants.map(p => 
+            p.id === a.plantId ? { ...p, lastTreated: new Date().toISOString() } : p
+          );
+          setPlants(updatedPlants);
+          localStorage.setItem('sadyba_plants', JSON.stringify(updatedPlants));
+        }
+        
+        return { ...a, status: newStatus, date: newStatus === 'completed' ? new Date().toISOString() : a.date };
+      }
+      return a;
+    });
+    
+    setActivities(updatedActivities);
+    localStorage.setItem('sadyba_activities', JSON.stringify(updatedActivities));
+    toast.success('Статус оновлено');
   };
 
   const showPlantAdvice = async (plant: Plant) => {
@@ -260,7 +286,7 @@ export default function App() {
     const region = profile?.region || "Київська";
     const regionText = region === "Автономна Республіка Крим" ? region : `${region} область`;
     
-    const { data, error, source } = await getGardeningAdvice(plant.variety || plant.name, `${city}, ${regionText}`);
+    const { data, error, source } = await getGardeningAdvice(plant.name, plant.variety, `${city}, ${regionText}`);
     if (error && !data) {
       console.error("Gardening Advice Error:", error);
       toast.error(`Помилка: ${error}`);
@@ -501,35 +527,93 @@ export default function App() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-4">
-                  {activities.map(activity => (
-                    <Card key={activity.id} className="bg-white">
-                      <CardContent className="p-4 flex gap-4">
-                        <div className="flex flex-col items-center justify-center bg-primary/10 text-primary w-16 h-16 rounded-2xl shrink-0">
-                          <span className="text-xs uppercase font-bold">
-                            {new Date(activity.date).toLocaleDateString('uk-UA', { month: 'short' })}
-                          </span>
-                          <span className="text-2xl font-bold">
-                            {new Date(activity.date).getDate()}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <h4 className="font-bold text-lg">{activity.action}</h4>
-                            {activity.plantName && (
-                              <Badge variant="outline" className="bg-secondary/5">
-                                {activity.plantName}
-                              </Badge>
-                            )}
-                          </div>
-                          {activity.notes && <p className="text-muted-foreground mt-1">{activity.notes}</p>}
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {new Date(activity.date).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Planned Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-2xl flex items-center gap-2 font-serif">
+                      <Calendar className="text-secondary" /> Заплановано
+                    </h3>
+                    <div className="space-y-4">
+                      {activities.filter(a => a.status === 'planned').length === 0 ? (
+                        <p className="text-muted-foreground italic bg-muted/20 p-4 rounded-2xl">Немає запланованих робіт</p>
+                      ) : (
+                        activities.filter(a => a.status === 'planned').map(activity => (
+                          <Card key={activity.id} className="bg-secondary/5 border-secondary/20 relative group overflow-hidden">
+                            <CardContent className="p-4 flex gap-4">
+                              <button 
+                                onClick={() => toggleActivityStatus(activity.id)}
+                                className="shrink-0 w-12 h-12 rounded-2xl border-2 border-secondary flex items-center justify-center hover:bg-secondary/20 transition-all"
+                                title="Виконати"
+                              >
+                                <CheckCircle2 className="text-secondary opacity-0 group-hover:opacity-50" />
+                              </button>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <h4 className="font-bold text-lg">{activity.action}</h4>
+                                  <span className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">
+                                    {new Date(activity.date).toLocaleDateString('uk-UA')}
+                                  </span>
+                                </div>
+                                {activity.plantName && (
+                                  <p className="text-sm text-muted-foreground font-medium">{activity.plantName}</p>
+                                )}
+                                {activity.notes && <p className="text-sm mt-2 text-muted-foreground italic">{activity.notes}</p>}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="mt-3 w-full gap-2 text-secondary hover:text-secondary hover:bg-secondary/10 rounded-xl"
+                                  onClick={() => toggleActivityStatus(activity.id)}
+                                >
+                                  <CheckCircle2 size={16} /> Позначити як виконане
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Completed Column */}
+                  <div className="space-y-4">
+                    <h3 className="text-2xl flex items-center gap-2 font-serif">
+                      <CheckCircle2 className="text-green-600" /> Виконано
+                    </h3>
+                    <div className="space-y-4">
+                      {activities.filter(a => a.status === 'completed' || !a.status).length === 0 ? (
+                        <p className="text-muted-foreground italic bg-muted/20 p-4 rounded-2xl">Історія порожня</p>
+                      ) : (
+                        activities.filter(a => a.status === 'completed' || !a.status).map(activity => (
+                          <Card key={activity.id} className="bg-white">
+                            <CardContent className="p-4 flex gap-4">
+                              <div className="flex flex-col items-center justify-center bg-primary/10 text-primary w-16 h-16 rounded-2xl shrink-0">
+                                <span className="text-xs uppercase font-bold">
+                                  {new Date(activity.date).toLocaleDateString('uk-UA', { month: 'short' })}
+                                </span>
+                                <span className="text-2xl font-bold">
+                                  {new Date(activity.date).getDate()}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex justify-between items-start">
+                                  <h4 className="font-bold text-lg">{activity.action}</h4>
+                                  {activity.plantName && (
+                                    <Badge variant="outline" className="bg-secondary/5">
+                                      {activity.plantName}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {activity.notes && <p className="text-sm mt-1 text-muted-foreground">{activity.notes}</p>}
+                                <p className="text-xs text-muted-foreground mt-2">
+                                  {new Date(activity.date).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -633,7 +717,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
           >
             <motion.div 
               initial={{ y: "100%" }}
@@ -651,7 +735,7 @@ export default function App() {
                 </Button>
               </div>
               
-              <ScrollArea className="flex-1 p-6">
+              <div className="flex-1 overflow-y-auto p-6">
                 <div className="space-y-8">
                   <div className="flex items-center justify-between text-primary">
                     <div className="flex items-center gap-2">
@@ -684,14 +768,14 @@ export default function App() {
                         </div>
                       ))}
                       
-                      <div className="bg-secondary/10 p-6 rounded-3xl border border-secondary/20 relative overflow-hidden">
+                      <div className="bg-secondary/20 p-6 rounded-3xl border border-secondary/30 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-2 opacity-10">
-                          <Sprout size={80} />
+                          <Sprout size={80} className="text-secondary" />
                         </div>
                         <h4 className="font-bold text-secondary mb-2 flex items-center gap-2">
                           <MessageSquare size={18} /> Секрет господаря
                         </h4>
-                        <p className="text-lg italic text-secondary-foreground relative z-10">
+                        <p className="text-lg italic text-primary relative z-10 font-medium">
                           {renderTextWithProducts(plantAdvice.secretTip, plantAdvice.products)}
                         </p>
                       </div>
@@ -709,25 +793,61 @@ export default function App() {
                     </div>
                   )}
 
-                  <div className="pt-6 border-t space-y-4">
-                    <h4 className="font-bold text-xl">Історія догляду</h4>
-                    <div className="space-y-3">
-                      {activities.filter(a => a.plantId === selectedPlant.id).length === 0 ? (
-                        <p className="text-muted-foreground italic">Записів про догляд ще немає.</p>
-                      ) : (
-                        activities.filter(a => a.plantId === selectedPlant.id).slice(0, 10).map(activity => (
-                          <div key={activity.id} className="flex gap-3 items-start p-3 bg-muted/30 rounded-xl">
-                            <CheckCircle2 size={16} className="text-green-600 mt-1" />
-                            <div>
-                              <p className="font-medium">{activity.action}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(activity.date).toLocaleDateString('uk-UA')}
-                              </p>
-                              {activity.notes && <p className="text-sm mt-1">{activity.notes}</p>}
-                            </div>
-                          </div>
-                        ))
-                      )}
+                  <div className="pt-6 border-t space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-xl flex items-center gap-2">
+                          <Calendar size={20} className="text-secondary" /> Заплановано
+                        </h4>
+                        <div className="space-y-3">
+                          {activities.filter(a => a.plantId === selectedPlant.id && a.status === 'planned').length === 0 ? (
+                            <p className="text-muted-foreground text-sm italic">Немає запланованих робіт.</p>
+                          ) : (
+                            activities.filter(a => a.plantId === selectedPlant.id && a.status === 'planned').map(activity => (
+                              <div key={activity.id} className="flex gap-3 items-start p-3 bg-secondary/5 border border-secondary/10 rounded-xl group">
+                                <button 
+                                  onClick={() => toggleActivityStatus(activity.id)}
+                                  className="mt-1 w-5 h-5 rounded-full border-2 border-secondary flex items-center justify-center hover:bg-secondary/20 transition-colors"
+                                  title="Позначити як виконане"
+                                >
+                                  <div className="w-2 h-2 rounded-full bg-secondary opacity-0 group-hover:opacity-50" />
+                                </button>
+                                <div className="flex-1">
+                                  <p className="font-medium">{activity.action}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(activity.date).toLocaleDateString('uk-UA')}
+                                  </p>
+                                  {activity.notes && <p className="text-sm mt-1">{activity.notes}</p>}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-xl flex items-center gap-2">
+                          <CheckCircle2 size={20} className="text-green-600" /> Виконано
+                        </h4>
+                        <div className="space-y-3">
+                          {activities.filter(a => a.plantId === selectedPlant.id && (a.status === 'completed' || !a.status)).length === 0 ? (
+                            <p className="text-muted-foreground text-sm italic">Історія порожня.</p>
+                          ) : (
+                            activities.filter(a => a.plantId === selectedPlant.id && (a.status === 'completed' || !a.status)).slice(0, 10).map(activity => (
+                              <div key={activity.id} className="flex gap-3 items-start p-3 bg-muted/30 rounded-xl">
+                                <CheckCircle2 size={16} className="text-green-600 mt-1" />
+                                <div>
+                                  <p className="font-medium">{activity.action}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(activity.date).toLocaleDateString('uk-UA')}
+                                  </p>
+                                  {activity.notes && <p className="text-sm mt-1">{activity.notes}</p>}
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
                     
                     <div className="pt-4">
@@ -755,7 +875,6 @@ export default function App() {
                           <div style={{ marginBottom: '30px' }}>
                             <h2 style={{ fontSize: '22pt', marginBottom: '10px' }}>{selectedPlant.name}</h2>
                             <p style={{ fontSize: '16pt' }}><strong>Сорт:</strong> {selectedPlant.variety}</p>
-                            <p style={{ fontSize: '14pt' }}><strong>Дата додавання:</strong> {new Date(selectedPlant.addedAt).toLocaleDateString('uk-UA')}</p>
                             <p style={{ fontSize: '14pt' }}><strong>Локація:</strong> {profile?.city}, {profile?.region}</p>
                           </div>
                           
@@ -769,7 +888,7 @@ export default function App() {
                               </tr>
                             </thead>
                             <tbody>
-                              {activities.filter(a => a.plantId === selectedPlant.id).map(activity => (
+                              {activities.filter(a => a.plantId === selectedPlant.id && (a.status === 'completed' || !a.status)).map(activity => (
                                 <tr key={activity.id}>
                                   <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(activity.date).toLocaleDateString('uk-UA')}</td>
                                   <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.action}</td>
@@ -779,8 +898,8 @@ export default function App() {
                             </tbody>
                           </table>
                           
-                          <div style={{ marginTop: '40px', fontSize: '10pt', color: '#999', textAlign: 'center' }}>
-                            Згенеровано додатком Садиба UA • {new Date().toLocaleString('uk-UA')}
+                          <div style={{ marginTop: '60px', padding: '15px', borderTop: '1px solid #1a4332', fontSize: '12pt', color: '#1a4332', textAlign: 'center', fontWeight: '500' }}>
+                            Згенеровано додатком Садиба UA • Дата формування звіту: {new Date().toLocaleString('uk-UA')}
                           </div>
                         </div>
                       )}
@@ -807,7 +926,7 @@ export default function App() {
                     </div>
                   </div>
                 </div>
-              </ScrollArea>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -1031,7 +1150,7 @@ function AddPlantDialog({ onAdd }: { onAdd: (name: string, variety: string) => v
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
@@ -1086,7 +1205,7 @@ function AddActivityDialog({
   trigger 
 }: { 
   plants: Plant[], 
-  onAdd: (action: string, plant?: Plant, notes?: string) => void,
+  onAdd: (action: string, status: 'planned' | 'completed', date: string, plant?: Plant, notes?: string) => void,
   preSelectedPlantId?: string,
   trigger?: ReactNode
 }) {
@@ -1094,11 +1213,13 @@ function AddActivityDialog({
   const [action, setAction] = useState('');
   const [selectedPlantId, setSelectedPlantId] = useState(preSelectedPlantId || 'none');
   const [notes, setNotes] = useState('');
+  const [status, setStatus] = useState<'planned' | 'completed'>('completed');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
 
   const handleSubmit = () => {
     if (action) {
       const plant = plants.find(p => p.id === selectedPlantId);
-      onAdd(action, plant, notes);
+      onAdd(action, status, new Date(date).toISOString(), plant, notes);
       setAction('');
       setNotes('');
       setOpen(false);
@@ -1121,7 +1242,7 @@ function AddActivityDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
@@ -1130,24 +1251,49 @@ function AddActivityDialog({
               className="bg-background w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-8 bg-secondary text-white text-center">
-                <h3 className="text-3xl font-serif">Запис у журнал</h3>
-                <p className="opacity-90">Що саме було зроблено сьогодні?</p>
+                <h3 className="text-3xl font-serif">Журнал робіт</h3>
+                <p className="opacity-90">Заплануйте або запишіть виконане</p>
               </div>
-              <div className="p-8 space-y-6">
+              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div className="flex p-1 bg-muted rounded-xl">
+                  <button 
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'completed' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                    onClick={() => setStatus('completed')}
+                  >
+                    Виконано
+                  </button>
+                  <button 
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'planned' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                    onClick={() => setStatus('planned')}
+                  >
+                    Запланувати
+                  </button>
+                </div>
+
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Що зробили? (напр. Полив)</label>
+                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Дата</label>
+                  <Input 
+                    type="date"
+                    value={date} 
+                    onChange={(e) => setDate(e.target.value)}
+                    className="text-lg py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Що зробити/зроблено?</label>
                   <Input 
                     value={action} 
                     onChange={(e) => setAction(e.target.value)}
-                    className="text-xl py-8 rounded-2xl border-2 focus:border-secondary transition-all"
-                    placeholder="Впишіть дію..."
+                    className="text-lg py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                    placeholder="Напр. Полив, Обрізка..."
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Для якої рослини?</label>
                   <Select value={selectedPlantId} onValueChange={setSelectedPlantId}>
-                    <SelectTrigger className="text-xl py-8 rounded-2xl border-2">
-                      <SelectValue placeholder="Оберіть рослину (необов'язково)" />
+                    <SelectTrigger className="text-lg py-6 rounded-2xl border-2">
+                      <SelectValue placeholder="Оберіть рослину" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Загальна робота</SelectItem>
@@ -1158,19 +1304,19 @@ function AddActivityDialog({
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Нотатки (необов'язково)</label>
+                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Нотатки</label>
                   <Input 
                     value={notes} 
                     onChange={(e) => setNotes(e.target.value)}
-                    className="text-xl py-8 rounded-2xl border-2 focus:border-secondary transition-all"
+                    className="text-lg py-6 rounded-2xl border-2 focus:border-secondary transition-all"
                     placeholder="Деталі..."
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1 py-8 text-xl rounded-2xl" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setOpen(false)}>
                     Скасувати
                   </Button>
-                  <Button className="flex-1 py-8 text-xl rounded-2xl bg-secondary hover:bg-secondary/90" onClick={handleSubmit} disabled={!action}>
+                  <Button className="flex-1 py-6 rounded-2xl bg-secondary hover:bg-secondary/90" onClick={handleSubmit} disabled={!action}>
                     Зберегти
                   </Button>
                 </div>
