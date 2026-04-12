@@ -12,7 +12,10 @@ import {
   MessageSquare,
   ArrowLeft,
   Loader2,
-  FileDown
+  FileDown,
+  BookOpen,
+  Sparkles,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { jsPDF } from 'jspdf';
@@ -99,21 +102,29 @@ export default function App() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activeTab, setActiveTab] = useState('home');
   const [dailyData, setDailyData] = useState<DailyTasksResponse | null>(null);
+  const [dailySource, setDailySource] = useState<'ai' | 'static'>('ai');
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [plantAdvice, setPlantAdvice] = useState<PlantAdviceResponse | null>(null);
+  const [adviceSource, setAdviceSource] = useState<'ai' | 'static'>('ai');
   const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const [customApiKey, setCustomApiKey] = useState('');
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   // Load data from localStorage
   useEffect(() => {
     const savedProfile = localStorage.getItem('sadyba_profile');
     const savedPlants = localStorage.getItem('sadyba_plants');
     const savedActivities = localStorage.getItem('sadyba_activities');
+    const savedKey = localStorage.getItem('custom_gemini_api_key');
     
     if (savedProfile) setProfile(JSON.parse(savedProfile));
     if (savedPlants) setPlants(JSON.parse(savedPlants));
     if (savedActivities) setActivities(JSON.parse(savedActivities));
+    if (savedKey) setCustomApiKey(savedKey);
   }, []);
 
   // Fetch daily tasks when profile is ready
@@ -123,13 +134,63 @@ export default function App() {
     }
   }, [profile, activeTab]);
 
+  // PWA Install Prompt Logic
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      if (!localStorage.getItem('sadyba_install_dismissed')) {
+        setShowInstallPrompt(true);
+      }
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      }
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    }
+  };
+
+  const dismissInstall = () => {
+    setShowInstallPrompt(false);
+    localStorage.setItem('sadyba_install_dismissed', 'true');
+  };
+
+  const saveApiKey = (key: string) => {
+    setCustomApiKey(key);
+    localStorage.setItem('custom_gemini_api_key', key);
+    if (key.trim() !== '') {
+      toast.success('Ключ ШІ збережено');
+    } else {
+      toast.info('Ключ ШІ видалено');
+    }
+  };
+
   const fetchDailyTasks = async () => {
     if (!profile) return;
+    
     setIsLoadingTasks(true);
     const date = new Date().toLocaleDateString('uk-UA');
     const regionText = profile.region === "Автономна Республіка Крим" ? profile.region : `${profile.region} область`;
-    const data = await getDailyTasks(`${profile.city}, ${regionText}`, date);
+    const { data, error, source } = await getDailyTasks(`${profile.city}, ${regionText}`, date);
+    if (error && !data) {
+      console.error("Daily Tasks Error:", error);
+      toast.error(`Не вдалося завантажити завдання: ${error}`);
+    }
     setDailyData(data);
+    setDailySource(source as 'ai' | 'static');
     setIsLoadingTasks(false);
   };
 
@@ -192,10 +253,20 @@ export default function App() {
   const showPlantAdvice = async (plant: Plant) => {
     setSelectedPlant(plant);
     setPlantAdvice(null);
+
     setIsLoadingAdvice(true);
-    const regionText = profile?.region === "Автономна Республіка Крим" ? profile?.region : `${profile?.region} область`;
-    const advice = await getGardeningAdvice(plant.variety || plant.name, `${profile?.city}, ${regionText}`);
-    setPlantAdvice(advice);
+    
+    const city = profile?.city || "Київ";
+    const region = profile?.region || "Київська";
+    const regionText = region === "Автономна Республіка Крим" ? region : `${region} область`;
+    
+    const { data, error, source } = await getGardeningAdvice(plant.variety || plant.name, `${city}, ${regionText}`);
+    if (error && !data) {
+      console.error("Gardening Advice Error:", error);
+      toast.error(`Помилка: ${error}`);
+    }
+    setPlantAdvice(data);
+    setAdviceSource(source as 'ai' | 'static');
     setIsLoadingAdvice(false);
   };
 
@@ -297,12 +368,22 @@ export default function App() {
             >
               <Card className="border-none shadow-md overflow-hidden bg-white/50 backdrop-blur-sm">
                 <CardHeader className="bg-accent/10 border-b border-accent/20">
-                  <CardTitle className="text-2xl flex items-center gap-2">
-                    <Calendar className="text-secondary" /> Поради на сьогодні
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    {new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </CardDescription>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-2xl flex items-center gap-2">
+                        <Calendar className="text-secondary" /> Поради на сьогодні
+                      </CardTitle>
+                      <CardDescription className="text-base mt-1">
+                        {new Date().toLocaleDateString('uk-UA', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </CardDescription>
+                    </div>
+                    {!isLoadingTasks && dailyData && (
+                      <Badge variant={dailySource === 'ai' ? 'default' : 'secondary'} className="flex items-center gap-1">
+                        {dailySource === 'ai' ? <Sparkles size={12} /> : <BookOpen size={12} />}
+                        {dailySource === 'ai' ? 'ШІ' : 'Довідник'}
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-4">
                   {isLoadingTasks ? (
@@ -493,8 +574,51 @@ export default function App() {
                   </Button>
                 </CardContent>
               </Card>
-              <div className="text-center text-muted-foreground text-sm">
-                <p>Версія 1.0.0 "Пролісок"</p>
+
+              <Card>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      Власний ключ Gemini API
+                    </label>
+                    <Input 
+                      type="password" 
+                      placeholder="AIzaSy..." 
+                      value={customApiKey}
+                      onChange={(e) => saveApiKey(e.target.value)}
+                      className="text-lg py-6"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Якщо стандартний ключ не працює, ви можете <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-primary underline">створити власний безкоштовний ключ</a> та вставити його сюди. Він зберігається лише на вашому пристрої.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <Button variant="destructive" className="w-full py-6 text-xl rounded-2xl" onClick={() => {
+                    localStorage.removeItem('sadyba_profile');
+                    localStorage.removeItem('sadyba_plants');
+                    localStorage.removeItem('sadyba_activities');
+                    localStorage.removeItem('custom_gemini_api_key');
+                    setProfile(null);
+                    setPlants([]);
+                    setActivities([]);
+                    setCustomApiKey('');
+                    setActiveTab('home');
+                    toast.success('Дані очищено');
+                  }}>
+                    Очистити всі дані
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <div className="text-center text-muted-foreground text-sm space-y-1">
+                <p>Версія 1.2.0 "Магнолія"</p>
+                <p className="text-[10px] opacity-30">
+                  Режим: Гібридний (ШІ + Офлайн)
+                </p>
                 <p>© 2026 Садиба UA</p>
               </div>
             </motion.div>
@@ -529,9 +653,17 @@ export default function App() {
               
               <ScrollArea className="flex-1 p-6">
                 <div className="space-y-8">
-                  <div className="flex items-center gap-2 text-primary">
-                    <Info size={20} />
-                    <span className="font-bold uppercase tracking-wider text-sm">Поради агронома</span>
+                  <div className="flex items-center justify-between text-primary">
+                    <div className="flex items-center gap-2">
+                      <Info size={20} />
+                      <span className="font-bold uppercase tracking-wider text-sm">Поради агронома</span>
+                    </div>
+                    {!isLoadingAdvice && plantAdvice && (
+                      <Badge variant={adviceSource === 'ai' ? 'default' : 'secondary'} className="flex items-center gap-1">
+                        {adviceSource === 'ai' ? <Sparkles size={12} /> : <BookOpen size={12} />}
+                        {adviceSource === 'ai' ? 'Згенеровано ШІ' : 'З довідника'}
+                      </Badge>
+                    )}
                   </div>
                   
                   {isLoadingAdvice ? (
@@ -565,7 +697,16 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-center py-8 text-muted-foreground">Не вдалося завантажити поради.</p>
+                    <div className="text-center py-8 space-y-4">
+                      <p className="text-muted-foreground">Не вдалося завантажити поради.</p>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => selectedPlant && showPlantAdvice(selectedPlant)}
+                        className="rounded-2xl"
+                      >
+                        Спробувати ще раз
+                      </Button>
+                    </div>
                   )}
 
                   <div className="pt-6 border-t space-y-4">
@@ -600,47 +741,49 @@ export default function App() {
                       </Button>
                       
                       {/* Hidden PDF Template */}
-                      <div 
-                        id={`pdf-report-${selectedPlant.id}`} 
-                        style={{ display: 'none', width: '210mm', padding: '20mm', background: 'white' }}
-                        className="font-sans text-black"
-                      >
-                        <div style={{ borderBottom: '2px solid #1a4332', paddingBottom: '10px', marginBottom: '20px' }}>
-                          <h1 style={{ fontSize: '28pt', color: '#1a4332', margin: 0 }}>Садиба UA: Звіт</h1>
-                          <p style={{ fontSize: '14pt', color: '#666' }}>Персональний журнал догляду</p>
-                        </div>
-                        
-                        <div style={{ marginBottom: '30px' }}>
-                          <h2 style={{ fontSize: '22pt', marginBottom: '10px' }}>{selectedPlant.name}</h2>
-                          <p style={{ fontSize: '16pt' }}><strong>Сорт:</strong> {selectedPlant.variety}</p>
-                          <p style={{ fontSize: '14pt' }}><strong>Дата додавання:</strong> {new Date(selectedPlant.addedAt).toLocaleDateString('uk-UA')}</p>
-                          <p style={{ fontSize: '14pt' }}><strong>Локація:</strong> {profile?.city}, {profile?.region}</p>
-                        </div>
-                        
-                        <h3 style={{ fontSize: '18pt', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Історія робіт</h3>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                          <thead>
-                            <tr style={{ backgroundColor: '#1a4332', color: 'white' }}>
-                              <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Дата</th>
-                              <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Дія</th>
-                              <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Деталі</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {activities.filter(a => a.plantId === selectedPlant.id).map(activity => (
-                              <tr key={activity.id}>
-                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(activity.date).toLocaleDateString('uk-UA')}</td>
-                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.action}</td>
-                                <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.notes || '-'}</td>
+                      {selectedPlant && (
+                        <div 
+                          id={`pdf-report-${selectedPlant.id}`} 
+                          style={{ display: 'none', width: '210mm', padding: '20mm', background: 'white' }}
+                          className="font-sans text-black"
+                        >
+                          <div style={{ borderBottom: '2px solid #1a4332', paddingBottom: '10px', marginBottom: '20px' }}>
+                            <h1 style={{ fontSize: '28pt', color: '#1a4332', margin: 0 }}>Садиба UA: Звіт</h1>
+                            <p style={{ fontSize: '14pt', color: '#666' }}>Персональний журнал догляду</p>
+                          </div>
+                          
+                          <div style={{ marginBottom: '30px' }}>
+                            <h2 style={{ fontSize: '22pt', marginBottom: '10px' }}>{selectedPlant.name}</h2>
+                            <p style={{ fontSize: '16pt' }}><strong>Сорт:</strong> {selectedPlant.variety}</p>
+                            <p style={{ fontSize: '14pt' }}><strong>Дата додавання:</strong> {new Date(selectedPlant.addedAt).toLocaleDateString('uk-UA')}</p>
+                            <p style={{ fontSize: '14pt' }}><strong>Локація:</strong> {profile?.city}, {profile?.region}</p>
+                          </div>
+                          
+                          <h3 style={{ fontSize: '18pt', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Історія робіт</h3>
+                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr style={{ backgroundColor: '#1a4332', color: 'white' }}>
+                                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Дата</th>
+                                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Дія</th>
+                                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Деталі</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        
-                        <div style={{ marginTop: '40px', fontSize: '10pt', color: '#999', textAlign: 'center' }}>
-                          Згенеровано додатком Садиба UA • {new Date().toLocaleString('uk-UA')}
+                            </thead>
+                            <tbody>
+                              {activities.filter(a => a.plantId === selectedPlant.id).map(activity => (
+                                <tr key={activity.id}>
+                                  <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(activity.date).toLocaleDateString('uk-UA')}</td>
+                                  <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.action}</td>
+                                  <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.notes || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          
+                          <div style={{ marginTop: '40px', fontSize: '10pt', color: '#999', textAlign: 'center' }}>
+                            Згенеровано додатком Садиба UA • {new Date().toLocaleString('uk-UA')}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                     
                     <h4 className="font-bold pt-4">Дії</h4>
@@ -744,6 +887,32 @@ export default function App() {
         <NavButton active={activeTab === 'calendar'} icon={<Calendar />} label="Календар" onClick={() => setActiveTab('calendar')} />
         <NavButton active={activeTab === 'settings'} icon={<Settings />} label="Налаштування" onClick={() => setActiveTab('settings')} />
       </nav>
+
+      {/* Install PWA Prompt */}
+      <AnimatePresence>
+        {showInstallPrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-24 left-4 right-4 z-50 bg-white p-4 rounded-3xl shadow-2xl border border-muted flex flex-col gap-4 max-w-md mx-auto"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-3 rounded-2xl text-primary">
+                <Download size={24} />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg">Встановити додаток</h3>
+                <p className="text-sm text-muted-foreground">Додайте Садиба UA на головний екран для швидкого доступу та роботи офлайн.</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={dismissInstall}>Пізніше</Button>
+              <Button className="flex-1 rounded-xl" onClick={handleInstall}>Встановити</Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Toaster position="top-center" expand={false} richColors />
     </div>

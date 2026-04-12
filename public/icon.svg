@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1a4332"/>
+  <g transform="translate(0, -30)">
+    <!-- Leaf Body -->
+    <path d="M256 100 C 370 190, 370 340, 256 400 C 142 340, 142 190, 256 100 Z" fill="#4ade80"/>
+    <!-- Center Vein (Negative Space) -->
+    <path d="M256 395 C 256 300, 280 200, 256 120" fill="none" stroke="#1a4332" stroke-width="12" stroke-linecap="round"/>
+    <!-- Stem -->
+    <path d="M256 390 C 256 430, 245 450, 230 470" fill="none" stroke="#4ade80" stroke-width="20" stroke-linecap="round"/>
+  </g>
+</svg>
