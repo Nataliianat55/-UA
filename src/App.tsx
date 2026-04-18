@@ -371,7 +371,7 @@ export default function App() {
       <header className="bg-primary text-primary-foreground p-6 rounded-b-3xl shadow-lg sticky top-0 z-10">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <div>
-            <h1 className="text-3xl font-serif">Садиба UA</h1>
+            <h1 className="text-2xl sm:text-3xl font-serif">Садиба UA</h1>
             <p className="text-sm opacity-90 flex items-center gap-1">
               <MapPin size={14} /> {profile.city}, {profile.region === "Автономна Республіка Крим" ? profile.region : `${profile.region} обл.`}
             </p>
@@ -396,7 +396,7 @@ export default function App() {
                 <CardHeader className="bg-accent/10 border-b border-accent/20">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-2xl flex items-center gap-2">
+                      <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
                         <Calendar className="text-secondary" /> Поради на сьогодні
                       </CardTitle>
                       <CardDescription className="text-base mt-1">
@@ -431,8 +431,8 @@ export default function App() {
                             <div className="bg-primary/10 text-primary font-bold w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1">
                               {idx + 1}
                             </div>
-                            <div>
-                              <h4 className="font-bold text-lg text-primary">{task.title}</h4>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-lg text-primary break-words">{task.title}</h4>
                               <p className="text-muted-foreground leading-relaxed">{task.description}</p>
                             </div>
                           </div>
@@ -473,14 +473,14 @@ export default function App() {
               className="space-y-6"
             >
               <div className="flex justify-between items-center">
-                <h2 className="text-3xl">Мій Сад</h2>
+                <h2 className="text-2xl sm:text-3xl">Мій Сад</h2>
                 <AddPlantDialog onAdd={addPlant} />
               </div>
 
               {plants.length === 0 ? (
                 <div className="text-center py-12 space-y-4 bg-white/50 rounded-3xl border-2 border-dashed border-muted">
                   <Sprout size={64} className="mx-auto text-muted-foreground opacity-50" />
-                  <p className="text-xl text-muted-foreground">У вашому саду ще немає рослин</p>
+                  <p className="text-lg text-muted-foreground">У вашому саду ще немає рослин</p>
                   <AddPlantDialog onAdd={addPlant} />
                 </div>
               ) : (
@@ -493,7 +493,7 @@ export default function App() {
                             <Sprout className="text-primary" />
                           </div>
                           <div>
-                            <h3 className="text-xl font-semibold">{plant.name}</h3>
+                            <h3 className="text-lg font-semibold">{plant.name}</h3>
                             <p className="text-muted-foreground">{plant.variety}</p>
                           </div>
                         </div>
@@ -515,7 +515,7 @@ export default function App() {
               className="space-y-6"
             >
               <div className="flex justify-between items-center">
-                <h2 className="text-3xl">Журнал робіт</h2>
+                <h2 className="text-2xl sm:text-3xl">Журнал робіт</h2>
                 <AddActivityDialog plants={plants} onAdd={addActivity} />
               </div>
 
@@ -523,14 +523,14 @@ export default function App() {
                 <Card className="bg-white/50 border-dashed border-2">
                   <CardContent className="p-12 text-center space-y-4">
                     <Calendar className="mx-auto text-muted-foreground opacity-30" size={48} />
-                    <p className="text-xl text-muted-foreground">Ви ще не записували свої роботи. Почніть сьогодні!</p>
+                    <p className="text-lg text-muted-foreground">Ви ще не записували свої роботи. Почніть сьогодні!</p>
                   </CardContent>
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {/* Planned Column */}
                   <div className="space-y-4">
-                    <h3 className="text-2xl flex items-center gap-2 font-serif">
+                    <h3 className="text-xl sm:text-2xl flex items-center gap-2 font-serif">
                       <Calendar className="text-secondary" /> Заплановано
                     </h3>
                     <div className="space-y-4">
@@ -547,10 +547,10 @@ export default function App() {
                               >
                                 <CheckCircle2 className="text-secondary opacity-0 group-hover:opacity-50" />
                               </button>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <h4 className="font-bold text-lg">{activity.action}</h4>
-                                  <span className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
+                                  <h4 className="font-bold text-lg truncate w-full sm:w-auto overflow-hidden">{activity.action}</h4>
+                                  <span className="text-xs font-medium text-secondary bg-secondary/10 px-2 py-1 rounded-full whitespace-nowrap shrink-0">
                                     {new Date(activity.date).toLocaleDateString('uk-UA')}
                                   </span>
                                 </div>
@@ -576,7 +576,7 @@ export default function App() {
 
                   {/* Completed Column */}
                   <div className="space-y-4">
-                    <h3 className="text-2xl flex items-center gap-2 font-serif">
+                    <h3 className="text-xl sm:text-2xl flex items-center gap-2 font-serif">
                       <CheckCircle2 className="text-green-600" /> Виконано
                     </h3>
                     <div className="space-y-4">
@@ -590,15 +590,15 @@ export default function App() {
                                 <span className="text-xs uppercase font-bold">
                                   {new Date(activity.date).toLocaleDateString('uk-UA', { month: 'short' })}
                                 </span>
-                                <span className="text-2xl font-bold">
+                                <span className="text-xl sm:text-2xl font-bold">
                                   {new Date(activity.date).getDate()}
                                 </span>
                               </div>
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <h4 className="font-bold text-lg">{activity.action}</h4>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:justify-between items-start gap-2">
+                                  <h4 className="font-bold text-lg truncate w-full sm:w-auto overflow-hidden">{activity.action}</h4>
                                   {activity.plantName && (
-                                    <Badge variant="outline" className="bg-secondary/5">
+                                    <Badge variant="outline" className="bg-secondary/5 whitespace-nowrap shrink-0">
                                       {activity.plantName}
                                     </Badge>
                                   )}
@@ -627,17 +627,17 @@ export default function App() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              <h2 className="text-3xl">Налаштування</h2>
+              <h2 className="text-2xl sm:text-3xl">Налаштування</h2>
               <Card>
                 <CardContent className="p-6 space-y-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Ваше ім'я</label>
-                    <Input value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="text-lg py-6" />
+                    <Input value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="text-base sm:text-lg py-3 sm:py-6" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Область</label>
                     <Select value={profile.region} onValueChange={(v) => setProfile({...profile, region: v})}>
-                      <SelectTrigger className="text-lg py-6">
+                      <SelectTrigger className="text-base sm:text-lg py-3 sm:py-6">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -651,9 +651,9 @@ export default function App() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Місто / Село</label>
-                    <Input value={profile.city} onChange={(e) => setProfile({...profile, city: e.target.value})} className="text-lg py-6" />
+                    <Input value={profile.city} onChange={(e) => setProfile({...profile, city: e.target.value})} className="text-base sm:text-lg py-3 sm:py-6" />
                   </div>
-                  <Button className="w-full py-6 text-xl rounded-2xl" onClick={() => saveProfile(profile)}>
+                  <Button className="w-full py-3 sm:py-6 text-lg rounded-2xl" onClick={() => saveProfile(profile)}>
                     Зберегти зміни
                   </Button>
                 </CardContent>
@@ -670,7 +670,7 @@ export default function App() {
                       placeholder="AIzaSy..." 
                       value={customApiKey}
                       onChange={(e) => saveApiKey(e.target.value)}
-                      className="text-lg py-6"
+                      className="text-base sm:text-lg py-3 sm:py-6"
                     />
                     <p className="text-xs text-muted-foreground mt-2">
                       Якщо стандартний ключ не працює, ви можете <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-primary underline">створити власний безкоштовний ключ</a> та вставити його сюди. Він зберігається лише на вашому пристрої.
@@ -681,7 +681,7 @@ export default function App() {
 
               <Card>
                 <CardContent className="pt-6">
-                  <Button variant="destructive" className="w-full py-6 text-xl rounded-2xl" onClick={() => {
+                  <Button variant="destructive" className="w-full py-3 sm:py-6 text-lg rounded-2xl" onClick={() => {
                     localStorage.removeItem('sadyba_profile');
                     localStorage.removeItem('sadyba_plants');
                     localStorage.removeItem('sadyba_activities');
@@ -727,7 +727,7 @@ export default function App() {
             >
               <div className="p-6 bg-primary text-primary-foreground flex justify-between items-center">
                 <div>
-                  <h2 className="text-3xl font-serif">{selectedPlant.name}</h2>
+                  <h2 className="text-2xl sm:text-3xl font-serif">{selectedPlant.name}</h2>
                   <p className="opacity-90">{selectedPlant.variety}</p>
                 </div>
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setSelectedPlant(null)}>
@@ -753,13 +753,13 @@ export default function App() {
                   {isLoadingAdvice ? (
                     <div className="flex flex-col items-center py-12 gap-4 text-muted-foreground">
                       <Loader2 className="animate-spin" size={48} />
-                      <p className="text-xl">Готуємо персональну довідку...</p>
+                      <p className="text-lg">Готуємо персональну довідку...</p>
                     </div>
                   ) : plantAdvice ? (
                     <div className="space-y-8">
                       {plantAdvice.sections.map((section, idx) => (
                         <div key={idx} className="space-y-2">
-                          <h4 className="text-xl font-bold text-primary flex items-center gap-2">
+                          <h4 className="text-lg font-bold text-primary flex items-center gap-2">
                             <CheckCircle2 size={18} className="text-secondary" /> {section.title}
                           </h4>
                           <p className="text-lg leading-relaxed text-muted-foreground">
@@ -796,7 +796,7 @@ export default function App() {
                   <div className="pt-6 border-t space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <h4 className="font-bold text-xl flex items-center gap-2">
+                        <h4 className="font-bold text-lg flex items-center gap-2">
                           <Calendar size={20} className="text-secondary" /> Заплановано
                         </h4>
                         <div className="space-y-3">
@@ -812,8 +812,8 @@ export default function App() {
                                 >
                                   <div className="w-2 h-2 rounded-full bg-secondary opacity-0 group-hover:opacity-50" />
                                 </button>
-                                <div className="flex-1">
-                                  <p className="font-medium">{activity.action}</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium break-words">{activity.action}</p>
                                   <p className="text-xs text-muted-foreground">
                                     {new Date(activity.date).toLocaleDateString('uk-UA')}
                                   </p>
@@ -826,7 +826,7 @@ export default function App() {
                       </div>
 
                       <div className="space-y-4">
-                        <h4 className="font-bold text-xl flex items-center gap-2">
+                        <h4 className="font-bold text-lg flex items-center gap-2">
                           <CheckCircle2 size={20} className="text-green-600" /> Виконано
                         </h4>
                         <div className="space-y-3">
@@ -836,8 +836,8 @@ export default function App() {
                             activities.filter(a => a.plantId === selectedPlant.id && (a.status === 'completed' || !a.status)).slice(0, 10).map(activity => (
                               <div key={activity.id} className="flex gap-3 items-start p-3 bg-muted/30 rounded-xl">
                                 <CheckCircle2 size={16} className="text-green-600 mt-1" />
-                                <div>
-                                  <p className="font-medium">{activity.action}</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium break-words">{activity.action}</p>
                                   <p className="text-xs text-muted-foreground">
                                     {new Date(activity.date).toLocaleDateString('uk-UA')}
                                   </p>
@@ -853,7 +853,7 @@ export default function App() {
                     <div className="pt-4">
                       <Button 
                         variant="secondary" 
-                        className="w-full gap-2 rounded-2xl py-6"
+                        className="w-full gap-2 rounded-2xl py-3 sm:py-6"
                         onClick={() => exportToPDF(selectedPlant)}
                         disabled={activities.filter(a => a.plantId === selectedPlant.id).length === 0}
                       >
@@ -884,14 +884,16 @@ export default function App() {
                               <tr style={{ backgroundColor: '#1a4332', color: 'white' }}>
                                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Дата</th>
                                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Дія</th>
+                                <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Статус</th>
                                 <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #ddd' }}>Деталі</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {activities.filter(a => a.plantId === selectedPlant.id && (a.status === 'completed' || !a.status)).map(activity => (
+                              {activities.filter(a => a.plantId === selectedPlant.id).map(activity => (
                                 <tr key={activity.id}>
                                   <td style={{ padding: '10px', border: '1px solid #ddd' }}>{new Date(activity.date).toLocaleDateString('uk-UA')}</td>
                                   <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.action}</td>
+                                  <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.status === 'planned' ? 'Заплановано' : 'Виконано'}</td>
                                   <td style={{ padding: '10px', border: '1px solid #ddd' }}>{activity.notes || '-'}</td>
                                 </tr>
                               ))}
@@ -912,12 +914,12 @@ export default function App() {
                         preSelectedPlantId={selectedPlant.id} 
                         onAdd={addActivity} 
                         trigger={
-                          <Button variant="outline" className="justify-start gap-3 py-6 text-lg rounded-2xl h-auto w-full">
+                          <Button variant="outline" className="justify-start gap-3 py-3 sm:py-6 text-lg rounded-2xl h-auto w-full">
                             <Plus className="text-primary" /> Записати нову дію
                           </Button>
                         }
                       />
-                      <Button variant="destructive" className="justify-start gap-3 py-6 text-lg rounded-2xl h-auto" onClick={() => {
+                      <Button variant="destructive" className="justify-start gap-3 py-3 sm:py-6 text-lg rounded-2xl h-auto" onClick={() => {
                         deletePlant(selectedPlant.id);
                         setSelectedPlant(null);
                       }}>
@@ -947,8 +949,8 @@ export default function App() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-background w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
-              <div className="p-8 bg-accent text-white text-center relative">
-                <h3 className="text-3xl font-serif">{selectedProduct.name}</h3>
+              <div className="p-5 sm:p-8 bg-accent text-white text-center relative">
+                <h3 className="text-2xl sm:text-3xl font-serif">{selectedProduct.name}</h3>
                 <p className="opacity-90">Інструкція та опис препарату</p>
                 <Button 
                   variant="ghost" 
@@ -960,7 +962,7 @@ export default function App() {
                 </Button>
               </div>
               <ScrollArea className="max-h-[70vh]">
-                <div className="p-8 space-y-6">
+                <div className="p-5 sm:p-8 space-y-6">
                   <div className="space-y-2">
                     <h4 className="font-bold text-accent flex items-center gap-2">
                       <Info size={18} /> Що це за препарат?
@@ -990,7 +992,7 @@ export default function App() {
                     </p>
                   </div>
                   
-                  <Button className="w-full py-6 text-xl rounded-2xl bg-accent hover:bg-accent/90" onClick={() => setSelectedProduct(null)}>
+                  <Button className="w-full py-3 sm:py-6 text-lg rounded-2xl bg-accent hover:bg-accent/90" onClick={() => setSelectedProduct(null)}>
                     Зрозуміло
                   </Button>
                 </div>
@@ -1069,28 +1071,28 @@ function Onboarding({ onComplete }: { onComplete: (profile: UserProfile) => void
             <Sprout size={48} className="text-white" />
           </div>
           <h1 className="text-5xl font-serif text-primary">Садиба UA</h1>
-          <p className="text-xl text-muted-foreground">Ваш розумний помічник у саду</p>
+          <p className="text-lg text-muted-foreground">Ваш розумний помічник у саду</p>
         </div>
 
         <Card className="border-none shadow-2xl rounded-[2.5rem] overflow-hidden">
           <CardHeader className="bg-primary/5 p-8 text-center">
-            <CardTitle className="text-2xl">Давайте познайомимось</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">Давайте познайомимось</CardTitle>
             <CardDescription className="text-lg">Це допоможе нам давати точні поради для вашого регіону</CardDescription>
           </CardHeader>
-          <CardContent className="p-8 space-y-6">
+          <CardContent className="p-5 sm:p-8 space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Як вас звати?</label>
               <Input 
                 placeholder="Ваше ім'я" 
                 value={name} 
                 onChange={(e) => setName(e.target.value)}
-                className="text-xl py-8 rounded-2xl border-2 focus:border-primary transition-all"
+                className="text-lg py-8 rounded-2xl border-2 focus:border-primary transition-all"
               />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Де ви господарюєте?</label>
               <Select onValueChange={setRegion}>
-                <SelectTrigger className="text-xl py-8 rounded-2xl border-2">
+                <SelectTrigger className="text-lg py-8 rounded-2xl border-2">
                   <SelectValue placeholder="Оберіть область" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1107,11 +1109,11 @@ function Onboarding({ onComplete }: { onComplete: (profile: UserProfile) => void
                 placeholder="Ваше місто або село" 
                 value={city} 
                 onChange={(e) => setCity(e.target.value)}
-                className="text-xl py-8 rounded-2xl border-2 focus:border-primary transition-all"
+                className="text-lg py-8 rounded-2xl border-2 focus:border-primary transition-all"
               />
             </div>
             <Button 
-              className="w-full py-8 text-2xl rounded-2xl shadow-lg hover:shadow-xl transition-all" 
+              className="w-full py-8 text-xl sm:text-2xl rounded-2xl shadow-lg hover:shadow-xl transition-all" 
               disabled={!name || !region || !city}
               onClick={() => onComplete({ name, region, city })}
             >
@@ -1140,7 +1142,7 @@ function AddPlantDialog({ onAdd }: { onAdd: (name: string, variety: string) => v
 
   return (
     <div className="relative">
-      <Button onClick={() => setOpen(true)} className="rounded-2xl gap-2 py-6 px-6 text-lg shadow-md">
+      <Button onClick={() => setOpen(true)} className="rounded-2xl gap-2 py-3 sm:py-6 px-6 text-lg shadow-md">
         <Plus size={24} /> Додати рослину
       </Button>
 
@@ -1158,17 +1160,17 @@ function AddPlantDialog({ onAdd }: { onAdd: (name: string, variety: string) => v
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-background w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
-              <div className="p-8 bg-primary text-primary-foreground text-center">
-                <h3 className="text-3xl font-serif">Нова рослина</h3>
+              <div className="p-5 sm:p-8 bg-primary text-primary-foreground text-center">
+                <h3 className="text-2xl sm:text-3xl font-serif">Нова рослина</h3>
                 <p className="opacity-90">Що ви посадили у своєму саду?</p>
               </div>
-              <div className="p-8 space-y-6">
+              <div className="p-5 sm:p-8 space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Назва (напр. Яблуня)</label>
                   <Input 
                     value={name} 
                     onChange={(e) => setName(e.target.value)}
-                    className="text-xl py-7 rounded-2xl border-2"
+                    className="text-lg py-3 sm:py-6 rounded-2xl border-2"
                     placeholder="Що це за рослина?"
                   />
                 </div>
@@ -1177,15 +1179,15 @@ function AddPlantDialog({ onAdd }: { onAdd: (name: string, variety: string) => v
                   <Input 
                     value={variety} 
                     onChange={(e) => setVariety(e.target.value)}
-                    className="text-xl py-7 rounded-2xl border-2"
+                    className="text-lg py-3 sm:py-6 rounded-2xl border-2"
                     placeholder="Який це сорт?"
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1 py-7 text-xl rounded-2xl" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="flex-1 py-3 sm:py-6 text-lg rounded-2xl" onClick={() => setOpen(false)}>
                     Скасувати
                   </Button>
-                  <Button className="flex-1 py-7 text-xl rounded-2xl" onClick={handleSubmit} disabled={!name}>
+                  <Button className="flex-1 py-3 sm:py-6 text-lg rounded-2xl" onClick={handleSubmit} disabled={!name}>
                     Додати
                   </Button>
                 </div>
@@ -1231,7 +1233,7 @@ function AddActivityDialog({
       {trigger ? (
         <div onClick={() => setOpen(true)}>{trigger}</div>
       ) : (
-        <Button onClick={() => setOpen(true)} className="rounded-2xl gap-2 py-6 px-6 text-lg shadow-md">
+        <Button onClick={() => setOpen(true)} className="rounded-2xl gap-2 py-3 sm:py-6 px-6 text-lg shadow-md">
           <Plus size={24} /> Записати роботу
         </Button>
       )}
@@ -1250,11 +1252,11 @@ function AddActivityDialog({
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-background w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
-              <div className="p-8 bg-secondary text-white text-center">
-                <h3 className="text-3xl font-serif">Журнал робіт</h3>
+              <div className="p-5 sm:p-8 bg-secondary text-white text-center">
+                <h3 className="text-2xl sm:text-3xl font-serif">Журнал робіт</h3>
                 <p className="opacity-90">Заплануйте або запишіть виконане</p>
               </div>
-              <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="p-5 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto">
                 <div className="flex p-1 bg-muted rounded-xl">
                   <button 
                     className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'completed' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
@@ -1276,7 +1278,7 @@ function AddActivityDialog({
                     type="date"
                     value={date} 
                     onChange={(e) => setDate(e.target.value)}
-                    className="text-lg py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                    className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
                   />
                 </div>
 
@@ -1285,14 +1287,14 @@ function AddActivityDialog({
                   <Input 
                     value={action} 
                     onChange={(e) => setAction(e.target.value)}
-                    className="text-lg py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                    className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
                     placeholder="Напр. Полив, Обрізка..."
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Для якої рослини?</label>
                   <Select value={selectedPlantId} onValueChange={setSelectedPlantId}>
-                    <SelectTrigger className="text-lg py-6 rounded-2xl border-2">
+                    <SelectTrigger className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2">
                       <SelectValue placeholder="Оберіть рослину" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1308,15 +1310,15 @@ function AddActivityDialog({
                   <Input 
                     value={notes} 
                     onChange={(e) => setNotes(e.target.value)}
-                    className="text-lg py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                    className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
                     placeholder="Деталі..."
                   />
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1 py-6 rounded-2xl" onClick={() => setOpen(false)}>
+                  <Button variant="outline" className="flex-1 py-3 sm:py-6 rounded-2xl" onClick={() => setOpen(false)}>
                     Скасувати
                   </Button>
-                  <Button className="flex-1 py-6 rounded-2xl bg-secondary hover:bg-secondary/90" onClick={handleSubmit} disabled={!action}>
+                  <Button className="flex-1 py-3 sm:py-6 rounded-2xl bg-secondary hover:bg-secondary/90" onClick={handleSubmit} disabled={!action}>
                     Зберегти
                   </Button>
                 </div>
