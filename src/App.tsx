@@ -317,9 +317,24 @@ export default function App() {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const imgProps = pdf.getImageProperties(imgData);
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add the first page
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add extra pages if needed
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`sadyba_${plant.name}_${new Date().toLocaleDateString('uk-UA')}.pdf`);
       
       element.style.display = 'none';
@@ -855,9 +870,9 @@ export default function App() {
                         variant="secondary" 
                         className="w-full gap-2 rounded-2xl py-3 sm:py-6"
                         onClick={() => exportToPDF(selectedPlant)}
-                        disabled={activities.filter(a => a.plantId === selectedPlant.id).length === 0}
+                        disabled={activities.filter(a => a.plantId === selectedPlant.id).length === 0 && !plantAdvice}
                       >
-                        <FileDown size={20} /> Зберегти історію в PDF
+                        <FileDown size={20} /> Зберегти звіт у PDF (поради + історія)
                       </Button>
                       
                       {/* Hidden PDF Template */}
@@ -877,6 +892,24 @@ export default function App() {
                             <p style={{ fontSize: '16pt' }}><strong>Сорт:</strong> {selectedPlant.variety}</p>
                             <p style={{ fontSize: '14pt' }}><strong>Локація:</strong> {profile?.city}, {profile?.region}</p>
                           </div>
+
+                          {plantAdvice && (
+                            <div style={{ marginBottom: '30px' }}>
+                              <h3 style={{ fontSize: '18pt', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Поради агронома</h3>
+                              {plantAdvice.sections.map((section, idx) => (
+                                <div key={idx} style={{ marginBottom: '15px' }}>
+                                  <h4 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#1a4332', marginBottom: '5px' }}>{section.title}</h4>
+                                  <p style={{ fontSize: '12pt', lineHeight: '1.5', color: '#333' }}>{section.content}</p>
+                                </div>
+                              ))}
+                              {plantAdvice.secretTip && (
+                                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f9f1', borderLeft: '4px solid #1a4332', borderRadius: '4px' }}>
+                                  <h4 style={{ fontSize: '14pt', fontWeight: 'bold', color: '#1a4332', marginBottom: '5px' }}>Секрет господаря</h4>
+                                  <p style={{ fontSize: '12pt', fontStyle: 'italic', lineHeight: '1.5' }}>{plantAdvice.secretTip}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                           
                           <h3 style={{ fontSize: '18pt', borderBottom: '1px solid #ddd', paddingBottom: '5px', marginBottom: '15px' }}>Історія робіт</h3>
                           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
