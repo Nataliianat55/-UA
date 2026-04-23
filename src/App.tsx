@@ -382,7 +382,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 font-sans overflow-y-auto overflow-x-hidden">
+    <div className="min-h-screen bg-background pb-32 font-sans overflow-y-auto overflow-x-hidden">
       <header className="bg-primary text-primary-foreground p-6 rounded-b-3xl shadow-lg sticky top-0 z-10">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <div>
@@ -732,7 +732,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
           >
             <motion.div 
               initial={{ y: "100%" }}
@@ -1035,7 +1035,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-muted p-2 pb-6 flex justify-around items-center z-40 max-w-2xl mx-auto rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-muted p-2 pb-6 flex justify-around items-center z-30 max-w-2xl mx-auto rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
         <NavButton active={activeTab === 'home'} icon={<CloudSun />} label="Головна" onClick={() => setActiveTab('home')} />
         <NavButton active={activeTab === 'garden'} icon={<Sprout />} label="Мій Сад" onClick={() => setActiveTab('garden')} />
         <NavButton active={activeTab === 'calendar'} icon={<Calendar />} label="Календар" onClick={() => setActiveTab('calendar')} />
@@ -1185,38 +1185,40 @@ function AddPlantDialog({ onAdd }: { onAdd: (name: string, variety: string) => v
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-background w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
+              className="bg-background w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="p-5 sm:p-8 bg-primary text-primary-foreground text-center">
+              <div className="p-4 sm:p-8 bg-primary text-primary-foreground text-center shrink-0">
                 <h3 className="text-2xl sm:text-3xl font-serif">Нова рослина</h3>
                 <p className="opacity-90">Що ви посадили у своєму саду?</p>
               </div>
-              <div className="p-5 sm:p-8 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Назва (напр. Яблуня)</label>
-                  <Input 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)}
-                    className="text-lg py-3 sm:py-6 rounded-2xl border-2"
-                    placeholder="Що це за рослина?"
-                  />
+              <div className="p-4 sm:p-8 flex flex-col overflow-hidden">
+                <div className="space-y-4 sm:space-y-6 overflow-y-auto pr-2 pb-2 flex-1">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Назва (напр. Яблуня)</label>
+                    <Input 
+                      value={name} 
+                      onChange={(e) => setName(e.target.value)}
+                      className="text-lg py-3 sm:py-6 rounded-2xl border-2"
+                      placeholder="Що це за рослина?"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Сорт (напр. Білий налив)</label>
+                    <Input 
+                      value={variety} 
+                      onChange={(e) => setVariety(e.target.value)}
+                      className="text-lg py-3 sm:py-6 rounded-2xl border-2"
+                      placeholder="Який це сорт?"
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Сорт (напр. Білий налив)</label>
-                  <Input 
-                    value={variety} 
-                    onChange={(e) => setVariety(e.target.value)}
-                    className="text-lg py-3 sm:py-6 rounded-2xl border-2"
-                    placeholder="Який це сорт?"
-                  />
-                </div>
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-4 border-t mt-2 shrink-0">
                   <Button variant="outline" className="flex-1 py-3 sm:py-6 text-lg rounded-2xl" onClick={() => setOpen(false)}>
                     Скасувати
                   </Button>
@@ -1277,77 +1279,79 @@ function AddActivityDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-background w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
+              className="bg-background w-full max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="p-5 sm:p-8 bg-secondary text-white text-center">
+              <div className="p-4 sm:p-8 bg-secondary text-white text-center shrink-0">
                 <h3 className="text-2xl sm:text-3xl font-serif">Журнал робіт</h3>
                 <p className="opacity-90">Заплануйте або запишіть виконане</p>
               </div>
-              <div className="p-5 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-                <div className="flex p-1 bg-muted rounded-xl">
-                  <button 
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'completed' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
-                    onClick={() => setStatus('completed')}
-                  >
-                    Виконано
-                  </button>
-                  <button 
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'planned' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
-                    onClick={() => setStatus('planned')}
-                  >
-                    Запланувати
-                  </button>
-                </div>
+              <div className="p-4 sm:p-8 flex flex-col overflow-hidden">
+                <div className="space-y-4 sm:space-y-6 overflow-y-auto pr-2 pb-2 flex-1">
+                  <div className="flex p-1 bg-muted rounded-xl shrink-0">
+                    <button 
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'completed' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                      onClick={() => setStatus('completed')}
+                    >
+                      Виконано
+                    </button>
+                    <button 
+                      className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${status === 'planned' ? 'bg-white shadow-sm text-primary' : 'text-muted-foreground'}`}
+                      onClick={() => setStatus('planned')}
+                    >
+                      Запланувати
+                    </button>
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Дата</label>
-                  <Input 
-                    type="date"
-                    value={date} 
-                    onChange={(e) => setDate(e.target.value)}
-                    className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Дата</label>
+                    <Input 
+                      type="date"
+                      value={date} 
+                      onChange={(e) => setDate(e.target.value)}
+                      className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Що зробити/зроблено?</label>
-                  <Input 
-                    value={action} 
-                    onChange={(e) => setAction(e.target.value)}
-                    className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
-                    placeholder="Напр. Полив, Обрізка..."
-                  />
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Що зробити/зроблено?</label>
+                    <Input 
+                      value={action} 
+                      onChange={(e) => setAction(e.target.value)}
+                      className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                      placeholder="Напр. Полив, Обрізка..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Для якої рослини?</label>
+                    <Select value={selectedPlantId} onValueChange={setSelectedPlantId}>
+                      <SelectTrigger className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2">
+                        <SelectValue placeholder="Оберіть рослину" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Загальна робота</SelectItem>
+                        {plants.map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.name} ({p.variety})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Нотатки</label>
+                    <Input 
+                      value={notes} 
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
+                      placeholder="Деталі..."
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Для якої рослини?</label>
-                  <Select value={selectedPlantId} onValueChange={setSelectedPlantId}>
-                    <SelectTrigger className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2">
-                      <SelectValue placeholder="Оберіть рослину" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Загальна робота</SelectItem>
-                      {plants.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.name} ({p.variety})</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Нотатки</label>
-                  <Input 
-                    value={notes} 
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="text-base sm:text-lg py-3 sm:py-6 rounded-2xl border-2 focus:border-secondary transition-all"
-                    placeholder="Деталі..."
-                  />
-                </div>
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-4 border-t mt-2 shrink-0">
                   <Button variant="outline" className="flex-1 py-3 sm:py-6 rounded-2xl" onClick={() => setOpen(false)}>
                     Скасувати
                   </Button>
